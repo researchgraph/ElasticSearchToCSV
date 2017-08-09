@@ -26,15 +26,11 @@ public class ElasticSearchRequest {
 	}
 	
 	
-	public int getTotalHitCountFromJson(String url) throws URISyntaxException{
+	public int getTotalHitCountFromJson(String url) throws URISyntaxException, MalformedURLException{
 		String hitCountParameterString = "\"hits\":{\"total\":";
 		String hitCount;
-		
-		String requestUrl = "";
-		requestUrl = url.substring(0, url.lastIndexOf("}"));
-		requestUrl += ", size:1}";
-		
-		String response = this.httpResponseAsText(this.httpGetRequest(new URI(requestUrl)));
+				
+		String response = this.getJSONString(url, 0, 1);
 		if(response == null || response.isEmpty())
 			return 0;
 		
