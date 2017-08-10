@@ -18,60 +18,43 @@ public class ImportRelationships {
 	}
 	
 //	### create relationship csv ################################
-	
+	private int numColumnsTotal = 0;
 	public void createRelationshipCsv(String inPath, String outPath){
 		File relationshipCsvFile = new File(outPath);
-		ArrayList<RelationShip> relationships = getRelationships(inPath);
 		
 		String csvHeader = ":START_ID,:END_ID,:TYPE";
-		String csvContent = "";
+		String csvContent = "", relationshipContent;
+		RelationShip relationship;
 		
-		for(RelationShip relationship: relationships){
-			csvContent += "\n" + relationship.fromGwsId + "," + relationship.toGwsId + "," + relationshipType;
-		}
+		File[] csvFiles = Tools.getFilesFromDir(inPath);
 		
 		try {
-			FileUtils.writeStringToFile(relationshipCsvFile, csvHeader + csvContent, "UTF-8");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}		
-	}	
-	
-	
-	
-//	#### get Relationships #####################################
-	
-	private int numColumnsTotal = 0;
-	public ArrayList<RelationShip> getRelationships(String csvDirPath){
-		ArrayList<RelationShip> relationships = new ArrayList<>();
-		
-		File[] csvFiles = Tools.getFilesFromDir(csvDirPath);
-		
-		for(File csvFile: csvFiles){
-			try {
-				System.out.println("File: " + csvFile.getName());
-				String csvContent = FileUtils.readFileToString(csvFile, "UTF-8");
+			FileUtils.writeStringToFile(relationshipCsvFile, csvHeader, "UTF-8");
+			for(File csvFile: csvFiles){
+				csvContent = FileUtils.readFileToString(csvFile, "UTF-8");
 				
 				String header = csvContent.substring(0,  csvContent.indexOf("\n"));
 				setColumnIndexes(header);
 				numColumnsTotal = getNumColumns(header);
 				
 				csvContent = csvContent.substring(csvContent.indexOf("\n") +1);				
-				String[] lines = csvContent.split("\n");
+				String[] lines = csvContent.split("\n");				
 				
-				
+				relationshipContent = "";
 				for(String line: lines){
-					relationships.add(getRelationShipFromLine(line));
+					relationship = getRelationShipFromLine(line);
+					relationshipContent += "\n" + relationship.fromGwsId + "," + relationship.toGwsId + "," + relationshipType;					
 				}
-				
-			} catch (IOException e) {
-				e.printStackTrace();
+				FileUtils.writeStringToFile(relationshipCsvFile, relationshipContent, "UTF-8", true);
 			}
-		}
-				
-		return relationships;
-	}
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}		
+	}	
 	
+	
+	
+//	#### get Relationship #####################################		
 	private RelationShip getRelationShipFromLine(String line){
 		RelationShip relationship = new RelationShip();
 		
