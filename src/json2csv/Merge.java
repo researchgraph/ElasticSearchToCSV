@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
@@ -11,31 +12,338 @@ import tools.Tools;
 
 public class Merge {
 	private String csvSeparator = ",";
+	
+	private HashMap<String, HashMap<String, Integer>> columnIndexMap;
+	private HashMap<String, String> headerMap;
+	
 	public Merge(){
+		setColumnIndicesAndHeaders();
+	}
+	
+	
+//	### headers and mappings #######################################
+	
+	public enum EntityTypes{
 		
+		citedData("citedData"),
+		dataset("dataset"),
+		institution("institution"),
+		instrument("instrument"),
+		project("project"),
+		publication("publication");
+		
+		private final String name;
+		
+		private EntityTypes(String s){
+			this.name = s;
+		}
+		
+		public String toString(){
+			return this.name();
+		}
+	}
+	
+	private void setColumnIndicesAndHeaders(){
+		TreeSet<String> citedDataColumns = getCitedDataColumns();
+		TreeSet<String> datasetColumns = getDatasetColumns();
+		TreeSet<String> institutionColumns = getInstitutionColumns();
+		TreeSet<String> instrumentColumns = getInstrumentColumns();
+		TreeSet<String> projectColumns = getProjectColumns();
+		TreeSet<String> publicationColumns = getPublicationColumns();
+		
+		columnIndexMap = new HashMap<>();
+		columnIndexMap.put(EntityTypes.citedData.toString(), defineEntityIndexes(citedDataColumns));
+		columnIndexMap.put(EntityTypes.dataset.toString(), defineEntityIndexes(datasetColumns));
+		columnIndexMap.put(EntityTypes.institution.toString(), defineEntityIndexes(institutionColumns));
+		columnIndexMap.put(EntityTypes.instrument.toString(), defineEntityIndexes(instrumentColumns));
+		columnIndexMap.put(EntityTypes.project.toString(), defineEntityIndexes(projectColumns));
+		columnIndexMap.put(EntityTypes.publication.toString(), defineEntityIndexes(publicationColumns));
+		
+		headerMap = new HashMap<>();
+		headerMap.put(EntityTypes.citedData.toString(), createHeader(citedDataColumns, EntityTypes.citedData));
+		headerMap.put(EntityTypes.dataset.toString(), createHeader(datasetColumns, EntityTypes.dataset));
+		headerMap.put(EntityTypes.institution.toString(), createHeader(institutionColumns, EntityTypes.institution));
+		headerMap.put(EntityTypes.instrument.toString(), createHeader(instrumentColumns, EntityTypes.instrument));
+		headerMap.put(EntityTypes.project.toString(), createHeader(projectColumns, EntityTypes.project));
+		headerMap.put(EntityTypes.publication.toString(), createHeader(publicationColumns, EntityTypes.publication));
+	}	
+	
+	
+//	### columns ###
+	
+	private TreeSet<String> getCitedDataColumns(){
+		TreeSet<String> columns = new TreeSet<>();
+//		columns.add("_id");
+		columns.add("_index");
+		columns.add("_score");
+		columns.add("_source.entityProvenance");
+		columns.add("_source.entityReliability");
+		columns.add("_source.entityType");
+		columns.add("_source.entityView");
+		columns.add("_source.freeKeywords");
+		columns.add("_source.gwsId");
+		columns.add("_source.name");
+		columns.add("_source.numericInfo");
+		columns.add("_source.year");
+		columns.add("_type");
+		
+		return columns;
+	}
+	private TreeSet<String> getDatasetColumns(){
+		TreeSet<String> columns = new TreeSet<>();
+//		columns.add("_id");
+		columns.add("_index");
+		columns.add("_score");
+		columns.add("_source.abstractText");
+		columns.add("_source.authors");
+		columns.add("_source.doi");
+		columns.add("_source.entityProvenance");
+		columns.add("_source.entityReliability");
+		columns.add("_source.entityType");
+		columns.add("_source.entityView");
+		columns.add("_source.gwsId");
+		columns.add("_source.identifiers");
+		columns.add("_source.name");
+		columns.add("_source.numericInfo");
+		columns.add("_source.publisher");
+		columns.add("_source.year");
+		columns.add("_type");
+		
+//		Research Graph schema
+		columns.add("key");		
+		columns.add("source");	
+		columns.add("last_updated");	
+		columns.add("licence");	
+		columns.add("megabyte");
+		
+		return columns;
+	}
+	
+	private TreeSet<String> getInstitutionColumns(){
+		TreeSet<String> columns = new TreeSet<>();
+//		columns.add("_id");
+		columns.add("_index");
+		columns.add("_score");
+		columns.add("_source.entityProvenance");
+		columns.add("_source.entityReliability");
+		columns.add("_source.entityType");
+		columns.add("_source.entityView");
+		columns.add("_source.gwsId");
+		columns.add("_source.identifiers");
+		columns.add("_source.name");
+		columns.add("_type");
+		
+		return columns;
+	}
+	
+	private TreeSet<String> getInstrumentColumns(){
+		TreeSet<String> columns = new TreeSet<>();
+//		columns.add("_id");
+		columns.add("_index");
+		columns.add("_score");
+		columns.add("_source.doi");
+		columns.add("_source.entityProvenance");
+		columns.add("_source.entityReliability");
+		columns.add("_source.entityType");
+		columns.add("_source.entityView");
+		columns.add("_source.gwsId");
+		columns.add("_source.identifiers");
+		columns.add("_source.name");
+		columns.add("_source.url");
+		columns.add("_type");
+		
+		return columns;
+	}
+	
+	private TreeSet<String> getProjectColumns(){
+		TreeSet<String> columns = new TreeSet<>();
+//		columns.add("_id");
+		columns.add("_index");
+		columns.add("_score");
+		columns.add("_source.abstractText");
+		columns.add("_source.authors");
+		columns.add("_source.entityProvenance");
+		columns.add("_source.entityReliability");
+		columns.add("_source.entityType");
+		columns.add("_source.entityView");
+		columns.add("_source.gwsId");
+		columns.add("_source.identifiers");
+		columns.add("_source.name");
+		columns.add("_source.numericInfo");
+		columns.add("_source.spatial");
+		columns.add("_source.url");
+		columns.add("_source.year");
+		columns.add("_type");
+		
+//		Research Graph schema
+		columns.add("key");		
+		columns.add("source");	
+		columns.add("last_updated");	
+		columns.add("purl");	
+		columns.add("participant_list");
+		columns.add("funder");		
+		columns.add("end_year");
+		
+		return columns;
+	}
+	
+	private TreeSet<String> getPublicationColumns(){
+		TreeSet<String> columns = new TreeSet<>();
+//		columns.add("_id");
+		columns.add("_index");
+		columns.add("_score");
+		columns.add("_source.authors");
+		columns.add("_source.collectionTitle");
+		columns.add("_source.doi");
+		columns.add("_source.editors");
+		columns.add("_source.entityProvenance");
+		columns.add("_source.entityReliability");
+		columns.add("_source.entityType");
+		columns.add("_source.entityView");
+		columns.add("_source.gwsId");
+		columns.add("_source.identifiers");
+		columns.add("_source.isbn");
+		columns.add("_source.issn");
+		columns.add("_source.journalTitle");
+		columns.add("_source.language");
+		columns.add("_source.location");
+		columns.add("_source.month");
+		columns.add("_source.name");
+		columns.add("_source.number");
+		columns.add("_source.pages");
+		columns.add("_source.publicationStatus");
+		columns.add("_source.publicationType");
+		columns.add("_source.publisher");
+		columns.add("_source.seriesTitle");
+		columns.add("_source.url");
+		columns.add("_source.volume");
+		columns.add("_source.year");
+		columns.add("_type");
+		
+//		Research Graph schema
+		columns.add("key");		
+		columns.add("source");	
+		columns.add("last_updated");	
+		columns.add("scopus_eid");	
+		
+		return columns;
+	}
+	
+//	### indices ###
+	
+	private HashMap<String, Integer> defineEntityIndexes(TreeSet<String> columns){
+		return defineColumnIndexes(columns);
+	}
+	
+	private HashMap<String, Integer> defineColumnIndexes(TreeSet<String> columns){
+		HashMap<String, Integer> columnsWithIndexes = new HashMap<>();
+		
+		int index = 0;
+		for(String column: columns){
+			columnsWithIndexes.put(column, index++);
+		}		
+		
+		return columnsWithIndexes;
+	}
+	
+//	### headers ####
+	
+	private String createHeader(TreeSet<String> columns, EntityTypes entityType){
+		String header = Tools.getArrayAsString(columns, csvSeparator);
+		return prepareHeader(header, entityType);
+	}
+	
+	private String prepareHeader(String header, EntityTypes entityType){
+		header = header.replace("_source.", "");		
+		header = doHeaderColumnNameMapping(header, entityType);
+		
+		return header;
+	}
+	
+//	### mapping ###
+	public String doHeaderColumnNameMapping(String header, EntityTypes entityType){
+//		header = header.replace("_id", "");
+//		header = header.replace("_index", "");
+//		header = header.replace("_score", "");
+//		header = header.replace("abstractText", "");
+//		header = header.replace("alternativeNames", "");
+		header = header.replace("authors", "authors_list");
+//		header = header.replace("classification", "");
+//		header = header.replace("collectionTitle", "");
+		header = header.replace("doi", "doi");
+//		header = header.replace("editors", "");
+//		header = header.replace("entityProvenance", "");
+//		header = header.replace("entityReliability", "");
+//		header = header.replace("entityType", "");
+//		header = header.replace("entityView", "");
+//		header = header.replace("freeKeywords", "");
+		header = header.replace("gwsId", "local_id:ID");
+//		header = header.replace("identifiers", "");
+//		header = header.replace("isbn", "");
+//		header = header.replace("issn", "");
+//		header = header.replace("journalTitle", "");
+//		header = header.replace("language", "");
+//		header = header.replace("location", "");
+//		header = header.replace("methodKeywords", "");
+//		header = header.replace("month", "");
+		header = header.replace("name", "title");
+//		header = header.replace("number", "");
+//		header = header.replace("numericInfo", "");
+//		header = header.replace("pages", "");
+//		header = header.replace("publicationStatus", "");
+//		header = header.replace("publicationType", "");
+//		header = header.replace("publisher", "");
+//		header = header.replace("seriesTitle", "");
+//		header = header.replace("spatial", "");
+//		header = header.replace("subjects", "");
+//		header = header.replace("tags", "");
+//		header = header.replace("textualReferences", "");
+		header = header.replace("url", "url");
+//		header = header.replace("volume", "");
+		if(entityType == EntityTypes.project)
+			header = header.replace("year", "start_year");
+		else
+			header = header.replace("year", "publication_year");
+//		header = header.replace("_type", "");
+		
+		return header;
+	}
+	
+	
+//	### labels ###
+	public String getLabel(String entityName){
+		String label = "";
+		EntityTypes entityType = EntityTypes.valueOf(entityName);
+		
+		switch(entityType){
+		case citedData: label = "gesis|citedData"; break;
+		case dataset: label = "dataset"; break;
+		case institution: label = "gesis|institution"; break;
+		case instrument: label = "gesis|instrument"; break;
+		case project: label = "grant"; break;
+		case publication: label = "publication";
+		}		
+		
+		return label;
 	}
 	
 //	### merge csv files #########################################
 	public void mergeCsvFiles(String csvDirPath, String csvOutputPath){
 		TreeSet<String> columns = getAllColumnsFromHeaders(csvDirPath);
-		HashMap<String, Integer> columnsWithIndexes = defineColumnIndexes(columns);
+		HashSet<String> entityTypes = new HashSet<>();
+		
+		String csvOutputPathPrefix = csvOutputPath.substring(0, csvOutputPath.lastIndexOf("."));
+		String csvOutputPathSuffix = csvOutputPath.substring(csvOutputPath.lastIndexOf("."));
+		String currentTypeOutputPath;
 		
 		File[] files = Tools.getFilesFromDir(csvDirPath);
 		String content, header;
 		String[] fileColumns;
 		String[] rows;
 		
-		String newHeader = Tools.getArrayAsString(columns, csvSeparator);
-		newHeader = prepareHeader(newHeader);
-		String mergedFilesContent;
+		String orderedRowContent;
 		
-		File outFile = new File(csvOutputPath);
-		try {
-			FileUtils.writeStringToFile(outFile, newHeader + "\n", "UTF-8");
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		
+		File outFile;
 		
 		for(File inFile: files){
 			try {
@@ -47,13 +355,18 @@ public class Merge {
 				content = content.substring(content.indexOf("\n") +1);
 				rows = content.split("\n");
 				
-				mergedFilesContent = "";
-				for(String row: rows){
-					mergedFilesContent += getOrderedRow(row, fileColumns, columnsWithIndexes) + "\n";
-				}
-				
 				try {
-					FileUtils.writeStringToFile(outFile, mergedFilesContent, "UTF-8", true);
+					for(String row: rows){
+						orderedRowContent = getOrderedRow(row, fileColumns) + "," + getLabel(this.currentEntityType) + "\n";
+						currentTypeOutputPath = csvOutputPathPrefix + "_" + currentEntityType + csvOutputPathSuffix;
+						outFile = new File(currentTypeOutputPath);
+						
+//						add header if it's the first occurrence of the current entityType
+						if(entityTypes.add(this.currentEntityType))
+							FileUtils.writeStringToFile(outFile, this.headerMap.get(this.currentEntityType) + ",:LABEL" + "\n", "UTF-8");
+						
+						FileUtils.writeStringToFile(outFile, orderedRowContent, "UTF-8", true);
+					}				
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -65,43 +378,37 @@ public class Merge {
 		}
 		
 		
-	}
+	}	
 	
-	public String prepareHeader(String header){
-		header = header.replace("gwsId", "gwsId:ID");
-		header = header.replace("_source.", "");
+	private String currentEntityType = "";
+	public String getOrderedRow(String unorderedRow, String[] fileHeader){
+		CSVCleaner cleaner = new CSVCleaner();		
+		ArrayList<String> rowElements = cleaner.getElements(unorderedRow);	
 		
-		return header;
-	}
-	
-	
-	public String getOrderedRow(String unorderedRow, String[] fileHeader, HashMap<String, Integer> columnsWithIndexes){
-		CSVCleaner cleaner = new CSVCleaner();
+		this.currentEntityType = getCurrentEntityType(fileHeader, rowElements);
+		HashMap<String, Integer> columnsWithIndexes = this.columnIndexMap.get(this.currentEntityType);
+		
 		String[] orderedElements = Tools.getInitializedStringArray(columnsWithIndexes.size());
-		
-		ArrayList<String> rowElements = cleaner.getElements(unorderedRow);
+		Integer columnIndex;
 		
 		for(int i = 0; i < fileHeader.length; i++){
-			orderedElements[columnsWithIndexes.get(fileHeader[i].trim())] = rowElements.get(i).trim();
-		}
-		
+			columnIndex = columnsWithIndexes.get(fileHeader[i].trim());
+			if(columnIndex != null && columnIndex >= 0)
+				orderedElements[columnIndex] = rowElements.get(i).trim();
+		}		
 		
 		return Tools.getArrayAsString(orderedElements, csvSeparator);
 	}
 	
-	
-	
-	public HashMap<String, Integer> defineColumnIndexes(TreeSet<String> columns){
-		HashMap<String, Integer> columnsWithIndexes = new HashMap<>();
+	private String getCurrentEntityType(String[] fileHeader, ArrayList<String> rowElements){
+		for(int i = 0; i < fileHeader.length; i++){
+			if(fileHeader[i].equals("_source.entityType"))
+				return rowElements.get(i).trim();
+		}
 		
-		int index = 0;
-		for(String column: columns){
-			columnsWithIndexes.put(column, index++);
-		}		
-		
-		return columnsWithIndexes;
+		return null;
 	}
-	
+		
 	private TreeSet<String> getAllColumnsFromHeaders(String csvDirPath){
 		TreeSet<String> columnsTotal = new TreeSet<>();
 		File[] files = Tools.getFilesFromDir(csvDirPath);
