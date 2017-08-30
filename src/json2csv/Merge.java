@@ -2,6 +2,7 @@ package json2csv;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
@@ -15,9 +16,16 @@ public class Merge {
 	
 	private HashMap<String, HashMap<String, Integer>> columnIndexMap;
 	private HashMap<String, String> headerMap;
+	private String currentDateAndTime;
 	
 	public Merge(){
+		setCurrentDateAndTime();
 		setColumnIndicesAndHeaders();
+	}
+	
+	private void setCurrentDateAndTime(){
+		Date date = new Date(System.currentTimeMillis());
+		this.currentDateAndTime = date.toString();
 	}
 	
 	
@@ -75,7 +83,7 @@ public class Merge {
 		TreeSet<String> columns = new TreeSet<>();
 //		columns.add("_id");
 		columns.add("_index");
-		columns.add("_score");
+//		columns.add("_score");
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
 		columns.add("_source.entityType");
@@ -93,8 +101,8 @@ public class Merge {
 		TreeSet<String> columns = new TreeSet<>();
 //		columns.add("_id");
 		columns.add("_index");
-		columns.add("_score");
-		columns.add("_source.abstractText");
+//		columns.add("_score");
+//		columns.add("_source.abstractText");
 		columns.add("_source.authors");
 		columns.add("_source.doi");
 		columns.add("_source.entityProvenance");
@@ -123,7 +131,7 @@ public class Merge {
 		TreeSet<String> columns = new TreeSet<>();
 //		columns.add("_id");
 		columns.add("_index");
-		columns.add("_score");
+//		columns.add("_score");
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
 		columns.add("_source.entityType");
@@ -140,7 +148,7 @@ public class Merge {
 		TreeSet<String> columns = new TreeSet<>();
 //		columns.add("_id");
 		columns.add("_index");
-		columns.add("_score");
+//		columns.add("_score");
 		columns.add("_source.doi");
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
@@ -159,8 +167,8 @@ public class Merge {
 		TreeSet<String> columns = new TreeSet<>();
 //		columns.add("_id");
 		columns.add("_index");
-		columns.add("_score");
-		columns.add("_source.abstractText");
+//		columns.add("_score");
+//		columns.add("_source.abstractText");
 		columns.add("_source.authors");
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
@@ -191,7 +199,7 @@ public class Merge {
 		TreeSet<String> columns = new TreeSet<>();
 //		columns.add("_id");
 		columns.add("_index");
-		columns.add("_score");
+//		columns.add("_score");
 		columns.add("_source.authors");
 		columns.add("_source.collectionTitle");
 		columns.add("_source.doi");
@@ -263,50 +271,69 @@ public class Merge {
 //	### mapping ###
 	public String doHeaderColumnNameMapping(String header, EntityTypes entityType){
 //		header = header.replace("_id", "");
-//		header = header.replace("_index", "");
+		header = header.replace("_index", "gesis_index");
 //		header = header.replace("_score", "");
 //		header = header.replace("abstractText", "");
-//		header = header.replace("alternativeNames", "");
-		header = header.replace("authors", "authors_list");
-//		header = header.replace("classification", "");
-//		header = header.replace("collectionTitle", "");
-		header = header.replace("doi", "doi");
-//		header = header.replace("editors", "");
-//		header = header.replace("entityProvenance", "");
-//		header = header.replace("entityReliability", "");
-//		header = header.replace("entityType", "");
-//		header = header.replace("entityView", "");
-//		header = header.replace("freeKeywords", "");
-		header = header.replace("gwsId", "local_id:ID");
-//		header = header.replace("identifiers", "");
-//		header = header.replace("isbn", "");
-//		header = header.replace("issn", "");
-//		header = header.replace("journalTitle", "");
-//		header = header.replace("language", "");
-//		header = header.replace("location", "");
-//		header = header.replace("methodKeywords", "");
-//		header = header.replace("month", "");
-		header = header.replace("name", "title");
-//		header = header.replace("number", "");
-//		header = header.replace("numericInfo", "");
-//		header = header.replace("pages", "");
-//		header = header.replace("publicationStatus", "");
-//		header = header.replace("publicationType", "");
-//		header = header.replace("publisher", "");
-//		header = header.replace("seriesTitle", "");
-//		header = header.replace("spatial", "");
-//		header = header.replace("subjects", "");
-//		header = header.replace("tags", "");
-//		header = header.replace("textualReferences", "");
-		header = header.replace("url", "url");
-//		header = header.replace("volume", "");
+		header = header.replace("alternativeNames", "gesis_alternative_names");
+		header = header.replace("authors", "authors_list");/*in rg-schema*/
+		header = header.replace("classification", "gesis_classification");
+		header = header.replace("collectionTitle", "gesis_collection_title");
+		header = header.replace("doi", "doi");/*in rg-schema*/
+		header = header.replace("editors", "gesis_editors");
+		header = header.replace("entityProvenance", "gesis_entity_provenance");
+		header = header.replace("entityReliability", "gesis_entity_reliability");
+		header = header.replace("entityType", "gesis_entity_type");
+		header = header.replace("entityView", "gesis_entity_view");
+		header = header.replace("freeKeywords", "gesis_free_keywords");
+		header = header.replace("gwsId", "local_id:ID");/*in rg-schema*/
+		header = header.replace("identifiers", "gesis_identifiers");
+		header = header.replace("isbn", "gesis_isbn");
+		header = header.replace("issn", "gesis_issn");
+		header = header.replace("journalTitle", "gesis_journal_title");
+		header = header.replace("language", "gesis_language");
+		header = header.replace("location", "gesis_location");
+		header = header.replace("methodKeywords", "gesis_method_keywords");
+		header = header.replace("month", "gesis_month");
+		header = header.replace("name", "title");/*in rg-schema*/
+		header = header.replace("number", "gesis_number");
+		header = header.replace("numericInfo", "gesis_numeric_info");
+		header = header.replace("pages", "gesis_pages");
+		header = header.replace("publicationStatus", "gesis_publication_status");
+		header = header.replace("publicationType", "gesis_publication_type");
+		header = header.replace("publisher", "gesis_publisher");
+		header = header.replace("seriesTitle", "gesis_series_title");
+		header = header.replace("spatial", "gesis_spatial");
+		header = header.replace("subjects", "gesis_subjects");
+		header = header.replace("tags", "gesis_tags");
+		header = header.replace("textualReferences", "gesis_textual_references");
+		header = header.replace("url", "url");/*in rg-schema*/
+		header = header.replace("volume", "gesis_volume");
 		if(entityType == EntityTypes.project)
-			header = header.replace("year", "start_year");
+			header = header.replace("year", "start_year");/*in rg-schema*/
 		else
-			header = header.replace("year", "publication_year");
-//		header = header.replace("_type", "");
+			header = header.replace("year", "publication_year");/*in rg-schema*/
+		header = header.replace("_type", "gesis_type");
 		
 		return header;
+	}
+	
+	
+	private void addResearchGraphValues(String[] orderedElements, HashMap<String, Integer> columnsWithIndexes, String local_id){
+		Integer columnIndex = columnsWithIndexes.get("key");
+		if(columnIndex != null && columnIndex >= 0)
+			orderedElements[columnIndex] = "researchgraph.org/gesis/" + local_id;
+		
+		columnIndex = columnsWithIndexes.get("source");
+		if(columnIndex != null && columnIndex >= 0)
+			orderedElements[columnIndex] = "gesis.org";
+		
+		columnIndex = columnsWithIndexes.get("last_updated");
+		if(columnIndex != null && columnIndex >= 0)
+			orderedElements[columnIndex] = this.currentDateAndTime;
+		
+		columnIndex = columnsWithIndexes.get("scopus_eid");
+		if(columnIndex != null && columnIndex >= 0)
+			orderedElements[columnIndex] = "\"\"";
 	}
 	
 	
@@ -318,7 +345,7 @@ public class Merge {
 		switch(entityType){
 		case citedData: label = "gesis|citedData"; break;
 		case dataset: label = "dataset"; break;
-		case institution: label = "gesis|institution"; break;
+		case institution: label = "institution"; break;
 		case instrument: label = "gesis|instrument"; break;
 		case project: label = "grant"; break;
 		case publication: label = "publication";
@@ -369,8 +396,7 @@ public class Merge {
 					}				
 				} catch (IOException e1) {
 					e1.printStackTrace();
-				}
-				
+				}				
 				
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -390,12 +416,19 @@ public class Merge {
 		
 		String[] orderedElements = Tools.getInitializedStringArray(columnsWithIndexes.size());
 		Integer columnIndex;
+		String local_id = "";
 		
 		for(int i = 0; i < fileHeader.length; i++){
 			columnIndex = columnsWithIndexes.get(fileHeader[i].trim());
-			if(columnIndex != null && columnIndex >= 0)
+			if(columnIndex != null && columnIndex >= 0){
 				orderedElements[columnIndex] = rowElements.get(i).trim();
-		}		
+				
+				if(fileHeader[i].contains("gwsId"))
+					local_id = orderedElements[columnIndex];
+			}
+		}
+		
+		addResearchGraphValues(orderedElements, columnsWithIndexes, local_id);
 		
 		return Tools.getArrayAsString(orderedElements, csvSeparator);
 	}
