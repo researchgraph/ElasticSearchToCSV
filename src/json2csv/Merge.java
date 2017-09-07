@@ -1,10 +1,17 @@
 package json2csv;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
@@ -24,8 +31,15 @@ public class Merge {
 	}
 	
 	private void setCurrentDateAndTime(){
-		Date date = new Date(System.currentTimeMillis());
-		this.currentDateAndTime = date.toString();
+		TimeZone timeZone = TimeZone.getTimeZone("UTC");
+		Calendar calendar = Calendar.getInstance(timeZone);
+
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd hh:mm:ss 'UTC' yyyy", Locale.US);
+		simpleDateFormat.setTimeZone(timeZone);
+		
+		String time = simpleDateFormat.format(calendar.getTime());
+		
+		this.currentDateAndTime = time;
 	}
 	
 	
@@ -95,6 +109,8 @@ public class Merge {
 		columns.add("_source.year");
 		columns.add("_type");
 		
+		columns.add("type");
+		
 		return columns;
 	}
 	private TreeSet<String> getDatasetColumns(){
@@ -123,6 +139,7 @@ public class Merge {
 		columns.add("last_updated");	
 		columns.add("licence");	
 		columns.add("megabyte");
+		columns.add("type");
 		
 		return columns;
 	}
@@ -139,7 +156,9 @@ public class Merge {
 		columns.add("_source.gwsId");
 		columns.add("_source.identifiers");
 		columns.add("_source.name");
-		columns.add("_type");
+		columns.add("_type");		
+
+		columns.add("type");
 		
 		return columns;
 	}
@@ -158,7 +177,9 @@ public class Merge {
 		columns.add("_source.identifiers");
 		columns.add("_source.name");
 		columns.add("_source.url");
-		columns.add("_type");
+		columns.add("_type");		
+
+		columns.add("type");
 		
 		return columns;
 	}
@@ -191,6 +212,7 @@ public class Merge {
 		columns.add("participant_list");
 		columns.add("funder");		
 		columns.add("end_year");
+		columns.add("type");
 		
 		return columns;
 	}
@@ -233,6 +255,7 @@ public class Merge {
 		columns.add("source");	
 		columns.add("last_updated");	
 		columns.add("scopus_eid");	
+		columns.add("type");
 		
 		return columns;
 	}
@@ -274,6 +297,7 @@ public class Merge {
 		header = header.replace("_index", "gesis_index");
 //		header = header.replace("_score", "");
 //		header = header.replace("abstractText", "");
+		header = header.replace("_type", "gesis_type");
 		header = header.replace("alternativeNames", "gesis_alternative_names");
 		header = header.replace("authors", "authors_list");/*in rg-schema*/
 		header = header.replace("classification", "gesis_classification");
@@ -312,7 +336,7 @@ public class Merge {
 			header = header.replace("year", "start_year");/*in rg-schema*/
 		else
 			header = header.replace("year", "publication_year");/*in rg-schema*/
-		header = header.replace("_type", "gesis_type");
+		
 		
 		return header;
 	}
@@ -334,6 +358,10 @@ public class Merge {
 		columnIndex = columnsWithIndexes.get("scopus_eid");
 		if(columnIndex != null && columnIndex >= 0)
 			orderedElements[columnIndex] = "\"\"";
+		
+		columnIndex = columnsWithIndexes.get("scopus_eid");
+		if(columnIndex != null && columnIndex >= 0)
+			orderedElements[columnIndex] = getLabel(this.currentEntityType);
 	}
 	
 	
