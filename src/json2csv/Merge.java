@@ -2,12 +2,8 @@ package json2csv;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -24,10 +20,23 @@ public class Merge {
 	private HashMap<String, HashMap<String, Integer>> columnIndexMap;
 	private HashMap<String, String> headerMap;
 	private String currentDateAndTime;
+
+	private HashMap<String, Integer> relColumnIndexMap;
+	String relationshipHeader;
 	
-	public Merge(){
-		setCurrentDateAndTime();
-		setColumnIndicesAndHeaders();
+	private Mode mode;
+	
+	private String currentEntityType = "";
+	
+	public Merge(Mode mode){
+		this.mode = mode;
+		if(mode == Mode.entityLink){
+			setRelationshipIndicesAndHeaders();
+		}
+		else{
+			setCurrentDateAndTime();
+			setColumnIndicesAndHeaders();
+		}
 	}
 	
 	private void setCurrentDateAndTime(){
@@ -45,6 +54,10 @@ public class Merge {
 	
 //	### headers and mappings #######################################
 	
+	public enum Mode{
+		entity, entityLink;
+	}
+	
 	public enum EntityTypes{
 		
 		citedData("citedData"),
@@ -54,7 +67,7 @@ public class Merge {
 		project("project"),
 		publication("publication");
 		
-		private final String name;
+		public final String name;
 		
 		private EntityTypes(String s){
 			this.name = s;
@@ -64,6 +77,7 @@ public class Merge {
 			return this.name();
 		}
 	}
+	
 	
 	private void setColumnIndicesAndHeaders(){
 		TreeSet<String> citedDataColumns = getCitedDataColumns();
@@ -88,7 +102,13 @@ public class Merge {
 		headerMap.put(EntityTypes.instrument.toString(), createHeader(instrumentColumns, EntityTypes.instrument));
 		headerMap.put(EntityTypes.project.toString(), createHeader(projectColumns, EntityTypes.project));
 		headerMap.put(EntityTypes.publication.toString(), createHeader(publicationColumns, EntityTypes.publication));
-	}	
+	}
+	
+	private void setRelationshipIndicesAndHeaders(){
+		TreeSet<String> relationshipColumns = getRelationshipColumns();		
+		relColumnIndexMap = defineEntityIndexes(relationshipColumns);
+		relationshipHeader = createHeader(relationshipColumns, null);
+	}
 	
 	
 //	### columns ###
@@ -101,7 +121,7 @@ public class Merge {
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
 		columns.add("_source.entityType");
-		columns.add("_source.entityView");
+//		columns.add("_source.entityView");
 		columns.add("_source.freeKeywords");
 		columns.add("_source.gwsId");
 		columns.add("_source.name");
@@ -124,9 +144,9 @@ public class Merge {
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
 		columns.add("_source.entityType");
-		columns.add("_source.entityView");
+//		columns.add("_source.entityView");
 		columns.add("_source.gwsId");
-		columns.add("_source.identifiers");
+//		columns.add("_source.identifiers");
 		columns.add("_source.name");
 		columns.add("_source.numericInfo");
 		columns.add("_source.publisher");
@@ -152,9 +172,9 @@ public class Merge {
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
 		columns.add("_source.entityType");
-		columns.add("_source.entityView");
+//		columns.add("_source.entityView");
 		columns.add("_source.gwsId");
-		columns.add("_source.identifiers");
+//		columns.add("_source.identifiers");
 		columns.add("_source.name");
 		columns.add("_type");		
 
@@ -172,9 +192,9 @@ public class Merge {
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
 		columns.add("_source.entityType");
-		columns.add("_source.entityView");
+//		columns.add("_source.entityView");
 		columns.add("_source.gwsId");
-		columns.add("_source.identifiers");
+//		columns.add("_source.identifiers");
 		columns.add("_source.name");
 		columns.add("_source.url");
 		columns.add("_type");		
@@ -194,9 +214,9 @@ public class Merge {
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
 		columns.add("_source.entityType");
-		columns.add("_source.entityView");
+//		columns.add("_source.entityView");
 		columns.add("_source.gwsId");
-		columns.add("_source.identifiers");
+//		columns.add("_source.identifiers");
 		columns.add("_source.name");
 		columns.add("_source.numericInfo");
 		columns.add("_source.spatial");
@@ -229,9 +249,9 @@ public class Merge {
 		columns.add("_source.entityProvenance");
 		columns.add("_source.entityReliability");
 		columns.add("_source.entityType");
-		columns.add("_source.entityView");
+//		columns.add("_source.entityView");
 		columns.add("_source.gwsId");
-		columns.add("_source.identifiers");
+//		columns.add("_source.identifiers");
 		columns.add("_source.isbn");
 		columns.add("_source.issn");
 		columns.add("_source.journalTitle");
@@ -256,6 +276,33 @@ public class Merge {
 		columns.add("last_updated");	
 		columns.add("scopus_eid");	
 		columns.add("type");
+		
+		return columns;
+	}
+	
+	private TreeSet<String> getRelationshipColumns(){
+		TreeSet<String> columns = new TreeSet<>();
+		columns.add("_source.tags");
+		columns.add("_index");
+		columns.add("_source.gws_fromType");
+		columns.add("_source.gws_fromID");
+		columns.add("_type");
+//		columns.add("_source.linkView");
+//		columns.add("_source.gws_fromView");
+//		columns.add("_score");
+//		columns.add("_source.gws_toView");
+		columns.add("_source.gws_link");
+		columns.add("_source.entityRelations");
+		columns.add("_source.gws_toType");
+		columns.add("_source.linkReason");
+		columns.add("_source.gws_toID");
+		columns.add("_id");
+//		columns.add("_source.toEntity");
+//		columns.add("_source.confidence");
+		columns.add("_source.provenance");
+//		columns.add("_source.fromEntity");
+		
+		columns.add(":TYPE");
 		
 		return columns;
 	}
@@ -286,7 +333,10 @@ public class Merge {
 	
 	private String prepareHeader(String header, EntityTypes entityType){
 		header = header.replace("_source.", "");		
-		header = doHeaderColumnNameMapping(header, entityType);
+		if(entityType == null)
+			header = doRelationshipHeaderColumnNameMapping(header);
+		else
+			header = doHeaderColumnNameMapping(header, entityType);
 		
 		return header;
 	}
@@ -341,6 +391,30 @@ public class Merge {
 		return header;
 	}
 	
+	public String doRelationshipHeaderColumnNameMapping(String header){
+		header = header.replace("_type", "gesis_type");
+		header = header.replace("tags", "gesis_tags");
+		header = header.replace("_index", "gesis_index");
+		header = header.replace("gws_fromType", "gesis_from_type");
+		header = header.replace("gws_fromID", ":START_ID");
+//		header = header.replace("linkView", "");
+//		header = header.replace("gws_fromView", "");
+//		header = header.replace("_score", "");
+//		header = header.replace("gws_toView", "");
+		header = header.replace("gws_link", "gesis_link");
+		header = header.replace("entityRelations", "gesis_entity_relations");
+		header = header.replace("gws_toType", "gesis_to_type");
+		header = header.replace("linkReason", "gesis_link_reason");
+		header = header.replace("gws_toID", ":END_ID");
+		header = header.replace("_id", "gesis_id");
+//		header = header.replace("toEntity", "");
+//		header = header.replace("confidence", "");
+		header = header.replace("provenance", "gesis_provenance");
+//		header = header.replace("fromEntity", "");
+		
+		return header;
+	}
+	
 	
 	private void addResearchGraphValues(String[] orderedElements, HashMap<String, Integer> columnsWithIndexes, String local_id){
 		Integer columnIndex = columnsWithIndexes.get("key");
@@ -359,16 +433,26 @@ public class Merge {
 		if(columnIndex != null && columnIndex >= 0)
 			orderedElements[columnIndex] = "\"\"";
 		
-		columnIndex = columnsWithIndexes.get("scopus_eid");
+		columnIndex = columnsWithIndexes.get("type");
 		if(columnIndex != null && columnIndex >= 0)
 			orderedElements[columnIndex] = getLabel(this.currentEntityType);
+	}
+	
+	private void addRelationshipResearchGraphValues(String[] orderedElements, HashMap<String, Integer> columnsWithIndexes){
+		Integer columnIndex = columnsWithIndexes.get(":TYPE");
+		if(columnIndex != null && columnIndex >= 0)
+			orderedElements[columnIndex] = "relatedTo";
 	}
 	
 	
 //	### labels ###
 	public String getLabel(String entityName){
-		String label = "";
 		EntityTypes entityType = EntityTypes.valueOf(entityName);
+		return getLabel(entityType);
+	}
+	
+	public String getLabel(EntityTypes entityType){
+		String label = "";
 		
 		switch(entityType){
 		case citedData: label = "gesis|citedData"; break;
@@ -384,7 +468,6 @@ public class Merge {
 	
 //	### merge csv files #########################################
 	public void mergeCsvFiles(String csvDirPath, String csvOutputPath){
-		TreeSet<String> columns = getAllColumnsFromHeaders(csvDirPath);
 		HashSet<String> entityTypes = new HashSet<>();
 		
 		String csvOutputPathPrefix = csvOutputPath.substring(0, csvOutputPath.lastIndexOf("."));
@@ -396,9 +479,13 @@ public class Merge {
 		String[] fileColumns;
 		String[] rows;
 		
-		String orderedRowContent;
+		String orderedRowContent = "";
 		
-		File outFile;
+		File outFile = null;
+		
+		if(this.mode == Mode.entityLink){
+			outFile = new File(csvOutputPath);
+		}
 		
 		for(File inFile: files){
 			try {
@@ -410,17 +497,30 @@ public class Merge {
 				content = content.substring(content.indexOf("\n") +1);
 				rows = content.split("\n");
 				
-				try {
-					for(String row: rows){
-						orderedRowContent = getOrderedRow(row, fileColumns) + "," + getLabel(this.currentEntityType) + "\n";
-						currentTypeOutputPath = csvOutputPathPrefix + "_" + currentEntityType + csvOutputPathSuffix;
-						outFile = new File(currentTypeOutputPath);
-						
-//						add header if it's the first occurrence of the current entityType
+				try {					
+					if(this.mode == Mode.entityLink){						
+						this.currentEntityType = Mode.entityLink.toString();
+//						add header if it's the first iteration
 						if(entityTypes.add(this.currentEntityType))
-							FileUtils.writeStringToFile(outFile, this.headerMap.get(this.currentEntityType) + ",:LABEL" + "\n", "UTF-8");
+							FileUtils.writeStringToFile(outFile, this.relationshipHeader + "\n", "UTF-8");
+					}
+					
+					for(String row: rows){
+						if(this.mode == Mode.entity){
+							orderedRowContent = getOrderedRow(row, fileColumns) + "," + getLabel(this.currentEntityType) + "\n";
+							currentTypeOutputPath = csvOutputPathPrefix + "_" + currentEntityType + csvOutputPathSuffix;
+							outFile = new File(currentTypeOutputPath);
+							
+	//						add header if it's the first occurrence of the current entityType
+							if(entityTypes.add(this.currentEntityType))
+								FileUtils.writeStringToFile(outFile, this.headerMap.get(this.currentEntityType) + ",:LABEL" + "\n", "UTF-8");							
+								
+						}
+						else if(this.mode == Mode.entityLink){
+							orderedRowContent = getOrderedRow(row, fileColumns) + "\n";							
+						}
 						
-						FileUtils.writeStringToFile(outFile, orderedRowContent, "UTF-8", true);
+						FileUtils.writeStringToFile(outFile, orderedRowContent, "UTF-8", true);		
 					}				
 				} catch (IOException e1) {
 					e1.printStackTrace();
@@ -434,13 +534,19 @@ public class Merge {
 		
 	}	
 	
-	private String currentEntityType = "";
+	
 	public String getOrderedRow(String unorderedRow, String[] fileHeader){
 		CSVCleaner cleaner = new CSVCleaner();		
 		ArrayList<String> rowElements = cleaner.getElements(unorderedRow);	
+		HashMap<String, Integer> columnsWithIndexes;
 		
-		this.currentEntityType = getCurrentEntityType(fileHeader, rowElements);
-		HashMap<String, Integer> columnsWithIndexes = this.columnIndexMap.get(this.currentEntityType);
+		if(this.mode == Mode.entity){
+			this.currentEntityType = getCurrentEntityType(fileHeader, rowElements);
+			columnsWithIndexes = this.columnIndexMap.get(this.currentEntityType);
+		}
+		else{
+			columnsWithIndexes = this.relColumnIndexMap;
+		}
 		
 		String[] orderedElements = Tools.getInitializedStringArray(columnsWithIndexes.size());
 		Integer columnIndex;
@@ -451,12 +557,19 @@ public class Merge {
 			if(columnIndex != null && columnIndex >= 0){
 				orderedElements[columnIndex] = rowElements.get(i).trim();
 				
+				if(orderedElements[columnIndex].equals("null"))
+					orderedElements[columnIndex] = "\"\"";
+				
 				if(fileHeader[i].contains("gwsId"))
 					local_id = orderedElements[columnIndex];
 			}
 		}
 		
-		addResearchGraphValues(orderedElements, columnsWithIndexes, local_id);
+		if(this.mode == Mode.entity)
+			addResearchGraphValues(orderedElements, columnsWithIndexes, local_id);
+		else
+			addRelationshipResearchGraphValues(orderedElements, columnsWithIndexes);
+		
 		
 		return Tools.getArrayAsString(orderedElements, csvSeparator);
 	}
@@ -468,34 +581,7 @@ public class Merge {
 		}
 		
 		return null;
-	}
-		
-	private TreeSet<String> getAllColumnsFromHeaders(String csvDirPath){
-		TreeSet<String> columnsTotal = new TreeSet<>();
-		File[] files = Tools.getFilesFromDir(csvDirPath);
-		String content, header;
-		String[] columns;
-		
-		for(File inFile: files){
-			try {
-				content = FileUtils.readFileToString(inFile, "UTF-8");
-
-				header = content.substring(0,  content.indexOf("\n"));
-				columns = header.split(csvSeparator);
-				
-				for(String column: columns){
-					columnsTotal.add(column.trim());
-				}
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
-		}
-		
-		return columnsTotal;
-	}
-	
+	}	
 	
 	
 	public void mergeFiles(File[] sourceFiles, String resultFilePath) throws IOException{

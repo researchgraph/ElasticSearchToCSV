@@ -1,10 +1,10 @@
 package main;
 import java.io.File;
 
-import commandBuilder.ImportRelationships;
 import json2csv.CSVCleaner;
 import json2csv.Json2Csv;
 import json2csv.Merge;
+import json2csv.Merge.Mode;
 
 public class Main {
 	
@@ -22,14 +22,9 @@ public class Main {
 		cleaner.cleanCsvFiles(inputDirectoryPath, outputDirectoryPath);
 	}
 	
-	private void mergeFiles(String intputDirectoryPath, String outputFilePath){
-		Merge merge = new Merge();
+	private void mergeFiles(String intputDirectoryPath, String outputFilePath, Mode mode){
+		Merge merge = new Merge(mode);
 		merge.mergeCsvFiles(intputDirectoryPath, outputFilePath);
-	}
-	
-	private void getRelationships(String inputDirectoryPath, String outputFilePath){
-		ImportRelationships ir = new ImportRelationships();
-		ir.createRelationshipCsv(inputDirectoryPath, outputFilePath);
 	}
 	
 	private void deleteDirectory(String path){
@@ -54,18 +49,19 @@ public class Main {
 		main.loadAndTransformData(url, csvDirPath + (new File(outputFilePath)).getName());
 		System.out.println("Done.");
 		
-		if(!url.contains("EntityLink")){
-			System.out.println("Preparing data for import...");
-			main.cleanData(csvDirPath, cleanedCsvDirPath);
-			System.out.println("Done.");
-			
+		System.out.println("Preparing data for import...");
+		main.cleanData(csvDirPath, cleanedCsvDirPath);
+		System.out.println("Done.");
+		
+		if(!url.contains("EntityLink")){			
 			System.out.println("Create node csv-file for import...");
-			main.mergeFiles(cleanedCsvDirPath, outputFilePath);
+			main.mergeFiles(cleanedCsvDirPath, outputFilePath, Mode.entity);
 			System.out.println("Done.");
 		}
 		else{
 			System.out.println("Create relationship csv-file for import");
-			main.getRelationships(csvDirPath, outputFilePath);
+//			main.getRelationships(csvDirPath, outputFilePath);
+			main.mergeFiles(cleanedCsvDirPath, outputFilePath, Mode.entityLink);
 			System.out.println("Done.");
 		}
 		System.out.println("Cleanup...");
