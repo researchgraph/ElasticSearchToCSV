@@ -1,5 +1,6 @@
 package mappings;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
 
@@ -15,6 +16,7 @@ public abstract class Mapping {
 	
 	protected String csvSeparator;
 	protected String currentDateAndTime;
+	protected String localIDFieldName;
 	
 	
 		
@@ -30,8 +32,41 @@ public abstract class Mapping {
 		}
 	}
 	
-	public abstract void setRelationshipIndicesAndHeaders();
-	public abstract void setColumnsIndicesAndHeaders();
+	public abstract String getCurrentEntityType(String[] columnNames, ArrayList<String> rowElements);
+	
+	public String getLocalIDFieldName(String currentEntityType){
+		return localIDFieldName;
+	}
+	
+	protected void setLocalIDFieldName(String name){
+		this.localIDFieldName = name;
+	}
+	
+	protected abstract String[] getNodeEntitiesNames();
+	protected abstract String[] getEdgeEntitiesNames();
+	protected abstract TreeSet<String> getEntityColumns(String entityName);
+	
+	protected void setColumnsIndicesAndHeaders(){
+		String[] nodeEntities = getNodeEntitiesNames();
+		setEntitiesIndicesAndHeaders(nodeEntities);
+	}
+	
+	protected void setRelationshipIndicesAndHeaders(){
+		String[] relationshipEntities = getEdgeEntitiesNames();
+		setEntitiesIndicesAndHeaders(relationshipEntities);
+	}
+	
+	protected void setEntitiesIndicesAndHeaders(String[] entities){		
+		columnIndexMap = new HashMap<>();
+		headerMap = new HashMap<>();
+		
+		for(String entity: entities){
+			TreeSet<String> entityColumns = getEntityColumns(entity);
+			columnIndexMap.put(entity, defineColumnIndexes(entityColumns));
+			headerMap.put(entity, createHeader(entityColumns, entity));			
+		}
+	}	
+	
 	
 //	### indices ###
 		

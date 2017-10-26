@@ -91,7 +91,8 @@ public class CSVCleaner {
 		
 		String[] separation = line.split(csvSeperator, 100000);
 		String prefix = "";
-		for(String element: separation){			
+		for(String element: separation){	
+			element = element.trim();
 			if(prefix.isEmpty()){
 				if(element.startsWith("\"")){
 					if(element.endsWith("\"") && element.length() > 1)
@@ -111,7 +112,6 @@ public class CSVCleaner {
 					prefix += csvSeperator + element;
 			}
 		}
-		
 		return elements;
 	}
 }

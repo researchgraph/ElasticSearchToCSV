@@ -1,5 +1,6 @@
 package mappings;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
 
@@ -11,6 +12,7 @@ public class GESIS_Mapping extends Mapping{
 	
 	public GESIS_Mapping(String csvSeparator, String currentDateAndTime, Mode mode){
 		super(csvSeparator, currentDateAndTime, mode);
+		setLocalIDFieldName("gwsID");
 	}
 	
 	public enum EntityTypes{		
@@ -23,38 +25,48 @@ public class GESIS_Mapping extends Mapping{
 		entityLink;
 	}	
 	
-	public void setColumnsIndicesAndHeaders(){
-		TreeSet<String> citedDataColumns = getCitedDataColumns();
-		TreeSet<String> datasetColumns = getDatasetColumns();
-		TreeSet<String> institutionColumns = getInstitutionColumns();
-		TreeSet<String> instrumentColumns = getInstrumentColumns();
-		TreeSet<String> projectColumns = getProjectColumns();
-		TreeSet<String> publicationColumns = getPublicationColumns();
-		
-		columnIndexMap = new HashMap<>();
-		columnIndexMap.put(EntityTypes.citedData.toString(), defineColumnIndexes(citedDataColumns));
-		columnIndexMap.put(EntityTypes.dataset.toString(), defineColumnIndexes(datasetColumns));
-		columnIndexMap.put(EntityTypes.institution.toString(), defineColumnIndexes(institutionColumns));
-		columnIndexMap.put(EntityTypes.instrument.toString(), defineColumnIndexes(instrumentColumns));
-		columnIndexMap.put(EntityTypes.project.toString(), defineColumnIndexes(projectColumns));
-		columnIndexMap.put(EntityTypes.publication.toString(), defineColumnIndexes(publicationColumns));
-		
-		headerMap = new HashMap<>();
-		headerMap.put(EntityTypes.citedData.toString(), createHeader(citedDataColumns, EntityTypes.citedData.toString()));
-		headerMap.put(EntityTypes.dataset.toString(), createHeader(datasetColumns, EntityTypes.dataset.toString()));
-		headerMap.put(EntityTypes.institution.toString(), createHeader(institutionColumns, EntityTypes.institution.toString()));
-		headerMap.put(EntityTypes.instrument.toString(), createHeader(instrumentColumns, EntityTypes.instrument.toString()));
-		headerMap.put(EntityTypes.project.toString(), createHeader(projectColumns, EntityTypes.project.toString()));
-		headerMap.put(EntityTypes.publication.toString(), createHeader(publicationColumns, EntityTypes.publication.toString()));
+	protected String[] getNodeEntitiesNames(){
+		return new String[]{
+				EntityTypes.citedData.toString(),
+				EntityTypes.dataset.toString(),
+				EntityTypes.institution.toString(),
+				EntityTypes.instrument.toString(),
+				EntityTypes.project.toString(),
+				EntityTypes.publication.toString()
+		};		
 	}
 	
-	public void setRelationshipIndicesAndHeaders(){
-		TreeSet<String> relationshipColumns = getRelationshipColumns();		
-		relColumnIndexMap = defineColumnIndexes(relationshipColumns);
-		relationshipHeader = createHeader(relationshipColumns, null);
+	protected String[] getEdgeEntitiesNames(){
+		return new String[]{
+				EntityTypes.entityLink.toString()
+		};		
 	}
 	
-
+	protected TreeSet<String> getEntityColumns(String entityName){
+		EntityTypes type = EntityTypes.valueOf(entityName);
+		
+		switch(type){
+		case citedData: return getCitedDataColumns();
+		case dataset: return getDatasetColumns();
+		case institution: return  getInstitutionColumns();
+		case instrument: return getInstrumentColumns();
+		case project: return getProjectColumns();
+		case publication: return getPublicationColumns();
+		case entityLink: return getRelationshipColumns();
+		}
+		
+		return null;
+	}
+	
+	public String getCurrentEntityType(String[] columnNames, ArrayList<String> rowElements){
+		for(int i = 0; i < columnNames.length; i++){
+			if(columnNames[i].equals("_source.entityType"))
+				return rowElements.get(i).trim();
+		}
+		
+		return null;
+	}
+	
 	
 //	### columns (names from source) ###
 	
@@ -336,7 +348,7 @@ public class GESIS_Mapping extends Mapping{
 		
 		return header;
 	}
-	
+		
 	
 	public String doRelationshipHeaderColumnNameMapping(String header){
 		header = header.replace("_source.", "");

@@ -8,13 +8,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
 
-import json2csv.Merge.Mode;
 import mappings.GESIS_Mapping;
 import mappings.Mapping;
+import mappings.MappingFactory;
 import tools.Tools;
 
 public class Merge {
@@ -31,11 +30,12 @@ public class Merge {
 		NODES, EDGES;
 	}
 	
-	public Merge(Mode mode){
+	public Merge(String dataSource, Mode mode){
 		this.mode = mode;
 		setCurrentDateAndTime();
 		
-		mapping = new GESIS_Mapping(csvSeparator, currentDateAndTime, mode);		
+		MappingFactory factory = new MappingFactory(dataSource);		
+		mapping = factory.getMapping(csvSeparator, currentDateAndTime, mode);		
 	}
 	
 	private void setCurrentDateAndTime(){
@@ -78,6 +78,7 @@ public class Merge {
 				content = FileUtils.readFileToString(inFile, "UTF-8");
 				
 				header = content.substring(0, content.indexOf("\n"));
+				header = header.replace("\"", "");
 				fileColumns = header.split(csvSeparator);
 				
 				content = content.substring(content.indexOf("\n") +1);
@@ -126,13 +127,12 @@ public class Merge {
 		HashMap<String, Integer> columnsWithIndexes;
 		
 		if(this.mode == Mode.NODES){
-			this.currentEntityType = getCurrentEntityType(fileHeader, rowElements);
+			this.currentEntityType = this.mapping.getCurrentEntityType(fileHeader, rowElements);
 			columnsWithIndexes = this.mapping.columnIndexMap.get(this.currentEntityType);
 		}
 		else{
 			columnsWithIndexes = this.mapping.relColumnIndexMap;
 		}
-		
 		String[] orderedElements = Tools.getInitializedStringArray(columnsWithIndexes.size());
 		Integer columnIndex;
 		String local_id = "";
@@ -145,7 +145,7 @@ public class Merge {
 				if(orderedElements[columnIndex].equals("null"))
 					orderedElements[columnIndex] = "\"\"";
 				
-				if(fileHeader[i].contains("gwsId"))
+				if(fileHeader[i].contains(this.mapping.getLocalIDFieldName(this.currentEntityType)))
 					local_id = orderedElements[columnIndex];
 			}
 		}
@@ -157,21 +157,12 @@ public class Merge {
 		
 		
 		return Tools.getArrayAsString(orderedElements, csvSeparator);
-	}
-	
-	private String getCurrentEntityType(String[] fileHeader, ArrayList<String> rowElements){
-		for(int i = 0; i < fileHeader.length; i++){
-			if(fileHeader[i].equals("_source.entityType"))
-				return rowElements.get(i).trim();
-		}
-		
-		return null;
 	}		
 	
 	public static void main(String[] args){
 		String cleanedCsvDirPath = "C:/Users/du/Projekte/LOD_Research_Graph/json2csv/link_db_Entity_cleaned";
 		String outputFilePath = "C:/Users/du/Projekte/LOD_Research_Graph/test/testMerge.csv";
-		Merge merge = new Merge(Mode.NODES);
+		Merge merge = new Merge("GESIS", Mode.NODES);
 		merge.mergeCsvFiles(cleanedCsvDirPath, outputFilePath);
 	}
 }
