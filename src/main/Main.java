@@ -12,7 +12,6 @@ public class Main {
 	}
 	
 	
-//	importSource = GESIS or NIH
 	private static void startProcess(String url, String outputDirectoryPath, String fileNamePrefix){
 		Main main = new Main();	
 		if(!outputDirectoryPath.endsWith("/"))
