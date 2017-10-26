@@ -152,7 +152,7 @@ public class Json2Csv {
 		FileUtils.writeStringToFile(csvFile, csv, "UTF-8");
 	}
 	
-	public void doTransformation(String url, String csvOutputPath){
+	public void doTransformation(String url, String outputDirectoryPath, String fileNamePrefix){
 		
 		String jsonString = "";
 		try {
@@ -171,10 +171,10 @@ public class Json2Csv {
 			if(numHits < size)
 				size = numHits;
 			
-			String outputPrefix = csvOutputPath.substring(0, csvOutputPath.lastIndexOf("."));
-			String outputSuffix = csvOutputPath.substring(csvOutputPath.lastIndexOf("."));
+			String csvOutputPath;
+			String outputSuffix = ".csv";
 			while(currentHits < numHits){
-				csvOutputPath = outputPrefix + "_" + (startValue + currentHits) + outputSuffix;
+				csvOutputPath = outputDirectoryPath + fileNamePrefix + "_" + (startValue + currentHits) + outputSuffix;
 				jsonString = (new ElasticSearchRequest()).getJSONString(url, (startValue + currentHits), size);
 				transformAndSave(jsonString, csvOutputPath);
 				currentHits += size;
